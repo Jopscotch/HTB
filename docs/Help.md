@@ -1,9 +1,7 @@
 # 20251230-Help - CTF Writeup
 
-**Status:** In Progress  
+**Status:** Completed
 **Date Started:** 2025-12-30  
-**Difficulty:** Easy
-**Machine IP:** 10.129.230.159
 
 ---
 
@@ -11,7 +9,7 @@
 
 ### Nmap Scan
 ```bash
-nmap -sC -sV -A -p- 20251230-Help
+nmap -sC -sV -A -p- help.htb
 ```
 
 **Open Ports:**
@@ -27,22 +25,13 @@ nmap -sC -sV -A -p- 20251230-Help
 - **Technologies:** Node.js Express Framework
 - **Interesting Directories:** 
     - `/support/` on Port 80
-- **vHosts:**
-    I reran a vhost scan using gobuster with SecLists top 5000 and came up with nothing when I exclude 302s and 400s. _I'm not sure that these are helpful._
-    - `mail3.htb` @ Port 3000
-    - `ns3.htb` "
-    - `syslog.htb` "
-    - `pbx.htb` "
-
-Moving on to BurpSuite
-
-
 
 ### Other Services
 Tried lots of things other than massive `gobuster dir` runs. A sneak peak at the hints in the guided method of HTB indicated that the directory is uncommon. It turns out that `/graphql` is the spot to look. After digging into the documentation at some sample queries, I was able to find the schema for the data set. After getting the schema, it took various tests to determine the user list, but after some trial and error, I got to something useful. 
 
-#### Trial and Error notes below
-##### Manual Query info
+### Trial and Error Notes Below
+#### User Manual Query info
+```json
 query {
   __schema {
     types {
@@ -50,15 +39,13 @@ query {
     }
   }
 }
+```
 
-###### Via GET:
-http://myapi/graphql?query={me{name}}
-
-###### This worked via GET in Burp:
+#### This worked via GET in Burp:
 `GET /graphql?query={__schema{types{name}}} HTTP/1.1`
 
 Output:
-```
+```http
 HTTP/1.1 200 OK
 X-Powered-By: Express
 Content-Type: application/json
@@ -69,11 +56,11 @@ Connection: keep-alive
 {"data":{"__schema":{"types":[{"name":"Query"},{"name":"User"},{"name":"String"},{"name":"__Schema"},{"name":"__Type"},{"name":"__TypeKind"},{"name":"Boolean"},{"name":"__Field"},{"name":"__InputValue"},{"name":"__EnumValue"},{"name":"__Directive"},{"name":"__DirectiveLocation"}]}}}
 ```
 
-From user manual:
+#### From User Manual:
 ```
 Types preceded with a double underscore that are part of the introspection system: __Schema, __Type, __TypeKind, __Field, __InputValue, __EnumValue, __Directive, and __DirectiveLocation
 ```
-###### New test:
+#### New Test:
 - GET /graphql?query={__type(name: "User"){fields{name}} HTTP/1.1
   - Nope
 - GET /graphql?query={user{username}} HTTP/1.1
@@ -97,7 +84,7 @@ Connection: keep-alive
 ### Vulnerability #1: GraphQL
 - **Type:** GraphQL credential exposure
 - **Description:** Using BurpSuite, we were able to submit GET requests to get a username and password (hashed). 
-- **Impact:** I can now use hashcat to crack the hash and then log in to either the support interface or the SSH interface.
+- **Impact:** I can now use hashcat to crack the hash and then log in to either the support interface
 - **Exploitation:** Burping. 
 
 ```http
@@ -113,8 +100,6 @@ If-None-Match: W/"51-gr8XZ5dnsfHNaB2KgX/Gxm9yVZU"
 Connection: keep-alive
 ```
  Cracked the password hash using hashcat. Applied the username email and password to `http://help.htb/support`. 
- 
- **User/pass = helpme@helpme.com/godhelpmeplz**
 
 ---
 
@@ -125,7 +110,7 @@ The first involves submitting a ticket with a PHP reverse shell file. This was a
 
 That was great and all, but we still need to be able to execute it. So, the question becomes, where the heck do the uploads hide and what are they named. In poking arounda copy of the HelpDeskZ v1.0.2 git, we can determine that the likely location of the uploads is `help.htb/support/tickets/uploads`. We also note from our searchsploit script that the filenames are coded based on upload time and hashed using md5. The searchsploit script used to hunt the filename down was a bit clunky. I rewrote it for python3 as shown below. Once the file was submitted with the ticket, I spun up a netcat instance for port 1234 and ran my script. This got me my shell and I quickly snagged the user flag. 
 
-```
+```python
 '''
 # HelpDeskZ Exploit: Unauthenticated Shell Upload
 
@@ -136,7 +121,6 @@ That was great and all, but we still need to be able to execute it. So, the ques
 
 ## Updated Exploit Script
 - Date: 2026-01-08
-- Author: Johnny Hopscotch
 - Update Justification:
     Original used Python2 and included some syntax issues. Script implementation was not clear.
 
@@ -193,98 +177,8 @@ if __name__ == "__main__":
 ```
 ---
 
-### Initial Access
-**Method:** Web RCE
-**Shell Obtained:** Reverse shell
-**User:** help
-
+## Privilege Escalation
 **Linux Kernel:** kernel 4.4.0-116-generic 
 **Vulnerability Found:** CVE-2017-16995
 I downloaded a copy of the C script that exploits this known CVE (https://www.exploit-db.com/exploits/45010), started a web server in my local working directory and moved the script to the target machine using `wget`. Once there, I ran gcc on the file, using the `-o outfile` flag to create an executable named "outfile". Then I made sure it was executable and ran it. It appeared to do nothing, but with no prompt present, I typed `whoami` and it came back with root. I grabbed the flag. 
 
-
-### Privilege Escalation
-**Enumeration:**
-```bash
-[LinEnum.sh / enum.ps1 output]
-[sudo -l, suid binaries, etc.]
-```
-
-
-
-**Exploitation:**
-```bash
-[Exploit commands]
-```
-
-**Root Shell Obtained:** [Confirmation]
-
----
-
-## Flags
-
-### User Flag
-```
-[Flag content]
-```
-**Location:** `/home/[username]/user.txt`  
-**Method:** [How we got it]
-
-### Root Flag
-```
-[Flag content]
-```
-**Location:** `/root/root.txt`  
-**Method:** [How we got it]
-
----
-
-## Key Learnings
-
-- **Lesson 1:** [What did you learn?]
-- **Lesson 2:** [What technique is new to you?]
-- **Lesson 3:** [What would you do differently next time?]
-
----
-
-## References & Tools Used
-
-### Reconnaissance
-- nmap
-- gobuster
-- nikto
-- curl / burp suite
-
-### Exploitation
-- [Tool/Exploit name]
-- [URL or local path]
-
-### Post-Exploitation
-- LinEnum.sh
-- [Other tools]
-
-### Resources
-- [HackTricks link]
-- [CVE database entry]
-- [Blog post that helped]
-
----
-
-## Timeline
-
-| Time | Action | Result |
-|------|--------|--------|
-| HH:MM | Initial nmap scan | Found open ports |
-| HH:MM | [Action] | [Result] |
-| HH:MM | [Action] | [Result] |
-
----
-
-## Notes to Self
-
-- [ ] Review privilege escalation technique more deeply
-- [ ] Practice exploit development
-- [ ] Study [tool/framework] for next time
-- [ ] Remember to check [common oversight]
-
-**Next Steps:** [Harder machine? Learn X? Practice Y?]

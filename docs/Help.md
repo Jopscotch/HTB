@@ -1,6 +1,7 @@
 # 20251230-Help - CTF Writeup
 
 **Status:** Completed
+
 **Date Started:** 2025-12-30  
 
 ---
@@ -81,7 +82,7 @@ Connection: keep-alive
 
 ## Vulnerabilities Identified
 
-### Vulnerability #1: GraphQL
+### Vulnerability: GraphQL
 - **Type:** GraphQL credential exposure
 - **Description:** Using BurpSuite, we were able to submit GET requests to get a username and password (hashed). 
 - **Impact:** I can now use hashcat to crack the hash and then log in to either the support interface
@@ -183,6 +184,7 @@ if __name__ == "__main__":
 
 ## Privilege Escalation
 **Linux Kernel:** kernel 4.4.0-116-generic 
+
 **Vulnerability Found:** CVE-2017-16995
 I downloaded a copy of the C script that exploits this known CVE (https://www.exploit-db.com/exploits/45010), started a web server in my local working directory and moved the script to the target machine using `wget`. Once there, I ran gcc on the file, using the `-o outfile` flag to create an executable named "outfile". Then I made sure it was executable and ran it. It appeared to do nothing, but with no prompt present, I typed `whoami` and it came back with root. I grabbed the flag. 
 

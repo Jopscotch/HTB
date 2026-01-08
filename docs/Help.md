@@ -122,7 +122,8 @@ That was great and all, but we still need to be able to execute it. So, the ques
 ## Updated Exploit Script
 - Date: 2026-01-08
 - Update Justification:
-    Original used Python2 and included some syntax issues. Script implementation was not clear.
+    Original used Python2 and included some syntax issues. 
+    Script implementation was not clear.
 
 ## Implementation
 
@@ -144,10 +145,13 @@ def getServerTime(hostname=hostname):
     # File request and get date/time
     r = requests.get(baseUrl)
     curDateTimeStr = r.headers['date']
-    curDateTime = datetime.strptime(curDateTimeStr, '%a, %d %b %Y %H:%M:%S %Z')
-    curDateTime = curDateTime.replace(tzinfo=timezone.utc) # Set timezone to GMT/UTC
+    curDateTime = datetime.strptime(curDateTimeStr, 
+                                    '%a, %d %b %Y %H:%M:%S %Z')
+    # Set timezone to GMT/UTC
+    curDateTime = curDateTime.replace(tzinfo=timezone.utc) 
 
-    # PHP .time function returns the current time measured in seconds since the Unix Epoch (Jan 1 1970 00:00:00 GMT)
+    # PHP .time function returns the current time measured in 
+    # seconds since the Unix Epoch (Jan 1 1970 00:00:00 GMT)
     epochTime = curDateTime - datetime(1970,1,1,tzinfo=timezone.utc)
     epochTimeSecs = int(epochTime.total_seconds())
     return epochTimeSecs

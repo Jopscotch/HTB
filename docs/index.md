@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -11,7 +10,7 @@
       padding: 0 1rem;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       line-height: 1.6;
-      background-color: #0b0c10;
+      background-color: #000000;
       color: #c5c6c7;
     }
     h1, h2 {
@@ -62,14 +61,14 @@
         <!-- Add more links as you publish new notes -->
       </ul>
     </section>
-
-    <section>
+  
+  <section>
       <h2>About This Site</h2>
       <p>
         All content here is distilled from my working Markdown notes and is focused on process, methodology,
         and lessons learned rather than copy‑pasted tool output.
       </p>
-    </section>
+  </section>
   </main>
 
   <footer>

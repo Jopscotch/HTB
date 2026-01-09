@@ -1,0 +1,23 @@
+/* Global dark background and light text */
+body {
+    background-color: #000000;
+    color: #f0f0f0;
+  }
+  
+  /* Make links readable on black */
+  a {
+    color: #66fcf1;
+  }
+  
+  a:hover {
+    text-decoration: underline;
+  }
+  
+  /* Optional: constrain main markdown content */
+  .markdown-body,
+  main {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 1.5rem;
+  }
+  
